@@ -14,5 +14,5 @@ Active Directory Reporting Tools | [![ADReportingTools](https://img.shields.io/p
 
 ## Learn More
 
-<img src=https://jdhitsolutions.com/blog/wp-content/uploads/2017/02/scripting-toolmaking-small.png alt="PSScriptingToolmaking" width=90 height=135 style="float:left;padding-right:10px;"> When you are ready to learn more, you might want to grab a copy of [_The PowerShell Scripting & Toolmaking Book_](https://leanpub.com/powershell-scripting-toolmaking). This book, co-authored with Don Jones, is our attempt at writing the definitive guide to PowerShell scripting. The book covers many of the topics I demonstrated in this session, plus much more.
+<img src=https://jdhitsolutions.com/blog/wp-content/uploads/2017/02/scripting-toolmaking-small.png alt="PSScriptingToolmaking" width=90 height=135 style="align:left;padding-right:10px;"> When you are ready to learn more, you might want to grab a copy of [_The PowerShell Scripting & Toolmaking Book_](https://leanpub.com/powershell-scripting-toolmaking). This book, co-authored with Don Jones, is our attempt at writing the definitive guide to PowerShell scripting. The book covers many of the topics I demonstrated in this session, plus much more.
 
