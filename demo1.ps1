@@ -1,20 +1,26 @@
+# https://github.com/jdhitsolutions/PSSummit2021
+
 Return "This is a demo script file."
 
 #region Custom Script Validation
 
 #make errors easier to see
 $host.PrivateData.ErrorForegroundColor = "yellow"
+
 Function Get-FolderSize {
     [cmdletbinding()]
     [alias("gfs")]
     Param(
-        [ValidateScript({Test-Path $_})]
+        [ValidateScript( { Test-Path $_ })]
         [string]$Path = "."
     )
 
-    Get-Childitem -Path $path -File -Force -Recurse | Measure-Object -Property Length -Sum |
-    Select-Object -Property @{Name="Path";Expression={Convert-Path $path}},Count,Sum
+    Get-ChildItem -Path $path -File -Force -Recurse |
+    Measure-Object -Property Length -Sum |
+    Select-Object -Property @{Name = "Path"; Expression = { Convert-Path $path } },
+    Count, Sum
 }
+
 #good
 Get-FolderSize c:\work
 
@@ -26,26 +32,28 @@ Function Get-FolderSize {
     [cmdletbinding()]
     [alias("gfs")]
     Param(
-    [ValidateScript({
-     if (Test-Path $_) {
-         $True
-     }
-     else {
-         Throw "Failed to validate the path $($_.toUpper())."
-         $False
-     }
-    })]
+        [ValidateScript( {
+                if (Test-Path $_) {
+                    $True
+                }
+                else {
+                    Throw "Failed to validate the path $($_.toUpper())."
+                    $False
+                }
+            })]
         [string]$Path = "."
     )
 
-    Get-Childitem -Path $path -File -Force -Recurse | Measure-Object -Property Length -Sum |
-    Select-Object -Property @{Name="Path";Expression={Convert-Path $path}},Count,Sum
+    Get-ChildItem -Path $path -File -Force -Recurse |
+    Measure-Object -Property Length -Sum |
+    Select-Object -Property @{Name = "Path"; Expression = { Convert-Path $path } },
+    Count, Sum
 }
 
 gfs q:\foo3
 
 #experience might differ based on PowerShell version
-$error[0].exception | Select *
+$error[0].exception | select *
 
 #if v7
 Get-Error -Newest 1
@@ -59,7 +67,7 @@ cls
 #https://github.com/jdhitsolutions/ADReportingTools
 
 psedit S:\ADReportingTools\functions\get-adcanonicaluser.ps1
-import-module S:\ADReportingTools\ADReportingTools.psd1 -force
+Import-Module S:\ADReportingTools\ADReportingTools.psd1 -Force
 #test the command in the domain
 $PSDefaultParameterValues
 
@@ -93,14 +101,14 @@ Get-ADUserCategory -Identity artd -Category foo
 #or this
 Register-ArgumentCompleter -CommandName Get-WinEvent -ParameterName Logname -ScriptBlock {
     param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
-    (Get-Winevent -listlog "$wordtoComplete*").logname |
-        foreach-object {
+    (Get-WinEvent -ListLog "$wordtoComplete*").logname |
+    ForEach-Object {
         # completion text,listitem text,result type,Tooltip
         [System.Management.Automation.CompletionResult]::new($_, $_, 'ParameterValue', $_)
     }
 }
 
-Get-WinEvent -logname <tab
+Get-WinEvent -LogName <tab
 
 #for a function
 psedit .\Get-ServiceStatus.ps1
@@ -151,7 +159,7 @@ Function Export-PSTypeExtension {
         [Parameter(ParameterSetName = "Object", ValueFromPipeline)]
         [object]$InputObject,
 
-        [parameter(HelpMessage="Force the command to accept the name as a type.")]
+        [parameter(HelpMessage = "Force the command to accept the name as a type.")]
         [switch]$Force,
 
         [switch]$Passthru
@@ -218,7 +226,7 @@ help Export-PSTypeExtension
 
 #but sometimes they are
 #this is using a command from the PSScriptTools module
-Get-ParameterInfo -Command Get-AdDomain | Select-Object Name,IsDynamic
+Get-ParameterInfo -Command Get-AdDomain | Select-Object Name, IsDynamic
 
 cls
 #endregion
@@ -227,22 +235,22 @@ cls
 
 help Update-TypeData
 #install from the PSGallery
-import-module PSTypeExtensionTools
-get-command -module PSTypeExtensionTools
+Import-Module PSTypeExtensionTools
+Get-Command -Module PSTypeExtensionTools
 
 Add-PSTypeExtension -TypeName system.io.fileinfo -MemberType AliasProperty -MemberName Size -Value Length
-Add-PSTypeExtension -TypeName system.io.fileinfo -MemberType ScriptProperty -MemberName ModifiedAge -Value {New-TimeSpan -Start $this.lastwritetime -End (Get-Date)}
+Add-PSTypeExtension -TypeName system.io.fileinfo -MemberType ScriptProperty -MemberName ModifiedAge -Value { New-TimeSpan -Start $this.lastwritetime -End (Get-Date) }
 
 Get-PSTypeExtension system.io.fileinfo
 
-dir c:\work -file | Select Name,Size,ModifiedAge
+dir c:\work -file | select Name, Size, ModifiedAge
 
 # I incorporated into a module
 psedit S:\ADReportingTools\types\aduser.types.ps1xml
-import-module S:\ADReportingTools\ADReportingTools.psd1 -force
+Import-Module S:\ADReportingTools\ADReportingTools.psd1 -Force
 
-get-aduser artd | get-pstype | Get-PSTypeExtension
-get-aduser -filter "department -eq 'sales'" | Select DN,Firstname,Lastname
+Get-ADUser artd | Get-PSType | Get-PSTypeExtension
+Get-ADUser -Filter "department -eq 'sales'" | select DN, Firstname, Lastname
 
 # more reading -> https://jdhitsolutions.com/blog/powershell/8215/powershell-property-sets-to-the-rescue/
 
@@ -254,8 +262,23 @@ cls
 
 #create ps1xml files with custom format views
 # https://github.com/jdhitsolutions/PSScriptTools/blob/master/docs/New-PSFormatXML.md
+# Install-Module PSScriptTools
 
 #create a custom view
+$n = @{
+    Properties = "Mode", "LastWriteTime", "ModifiedAge", "Size", "Name"
+    GroupBy    = "Directory"
+    ViewName   = "Age"
+    Path       = ".\myfile.format.ps1xml"
+}
+
+#need a single object
+Get-Item C:\work\Test.txt | New-PSFormatXML @n
+
+psedit $n.path
+Update-FormatData $n.path
+dir c:\work -file | Format-Table -View age
+cls
 
 #create view for your module and custom objects
 dir S:\ADReportingTools\formats
@@ -267,12 +290,12 @@ Get-ADSummary
 #use this from the PSScriptingTools module to discover defined views
 Get-FormatView system.diagnostics.process
 
-Get-Process | format-table view starttime
+Get-Process | Format-Table view starttime
 
 #in my AD module
 Get-FormatView addomaincontrollerhealth
 Get-ADDomainControllerHealth
-Get-ADDomainControllerHealth | format-table -view info
+Get-ADDomainControllerHealth | Format-Table -View info
 
 cls
 #endregion
@@ -282,17 +305,20 @@ cls
 # script links to External Scripts
 $env:path -split ";"
 
-install-script winfetch
+# install-script winfetch
+
 #installing will update the path
-get-command winfetch
+Get-Command winfetch | Format-List Name, Source, CommandType
+
 #this is a script but I can specify the name without the path!
 winfetch
+cls
 
 psedit .\CreateScriptLinks.ps1
 
 S:\CreateScriptLinks.ps1 -Path C:\scripts\GetExternalScripts.ps1
 
-get-command -CommandType ExternalScript
+Get-Command -CommandType ExternalScript
 
 GetExternalScripts
 
